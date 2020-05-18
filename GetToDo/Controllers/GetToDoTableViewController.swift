@@ -7,17 +7,22 @@
 //
 
 import UIKit
+import CoreData
 
 class GetToDoTableViewController: UITableViewController{
     
-    var itemArray = [Item]()
+    var itemArray = [ToDoItem]()
     
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Item.plist")
+    // To get a reference of the "viewContext" of "persistentContainer".
+    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
+    // Place where the database live.
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
 
     override func viewDidLoad() {
         super.viewDidLoad()
         loadItems()
-//        print(dataFilePath)
+        print(dataFilePath)
     }
     
     @IBAction func AddButtonPressed(_ sender: UIBarButtonItem) {
@@ -29,9 +34,11 @@ class GetToDoTableViewController: UITableViewController{
             textField = alertTextField
         }
         
+        // Add new things
         let add = UIAlertAction(title: "Add", style: .default) { (action) in
-            let newItem = Item()
+            let newItem = ToDoItem(context: self.context)
             newItem.title = textField.text!
+            newItem.done = false
             self.itemArray.append(newItem)
             self.saveItem()
         }
@@ -45,25 +52,25 @@ class GetToDoTableViewController: UITableViewController{
         present(alert, animated: true, completion: nil)
     }
     
+    // Save the content in context to persisdentContainer.
     func saveItem() {
-        let encoder = PropertyListEncoder()
         do {
-            let data = try encoder.encode(itemArray)
-            try data.write(to: dataFilePath!)
+            try context.save()
         } catch {
-            print("Error encoding itemArray, \(error)")
+            print("Error saving context, \(error)")
         }
         self.tableView.reloadData()
     }
     
+    // Load content from persisdentContainer.
     func loadItems() {
-        if let data = try? Data(contentsOf: dataFilePath!) {
-            let decoder = PropertyListDecoder()
-            do {
-                itemArray = try decoder.decode([Item].self, from: data)
-            } catch {
-                print("Error decoding itemArray, \(error)")
-            }
+        // Create a fetch request of type ToDoItem.
+        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+        do {
+            // Save the fetched data into itemArray.
+            itemArray = try context.fetch(request)
+        } catch {
+            print("Error fetching data from context \(error)")
         }
     }
     
