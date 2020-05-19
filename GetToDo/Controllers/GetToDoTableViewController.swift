@@ -111,6 +111,15 @@ class GetToDoTableViewController: UITableViewController {
         
         saveItem()
     }
+    
+    // Swipe to delete.
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            context.delete(itemArray[indexPath.row])
+            itemArray.remove(at: indexPath.row)
+            saveItem()
+        }
+    }
 
 }
 
