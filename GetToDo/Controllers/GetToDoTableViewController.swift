@@ -6,10 +6,13 @@
 //  Copyright © 2020 Canbin Mei. All rights reserved.
 //
 
+// Note for Core Data:
+// Every NSManagedObject created is saved after context.save()
+
 import UIKit
 import CoreData
 
-class GetToDoTableViewController: UITableViewController{
+class GetToDoTableViewController: UITableViewController {
     
     var itemArray = [ToDoItem]()
     
@@ -17,12 +20,19 @@ class GetToDoTableViewController: UITableViewController{
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     // Place where the database live.
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+//    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
 
     override func viewDidLoad() {
         super.viewDidLoad()
+//        print(dataFilePath)
         loadItems()
-        print(dataFilePath)
+
+//        // Code for understanding Core Data.
+//        let oneMoreItem = ToDoItem(context: context)
+//        oneMoreItem.title = "oneMoreItem"
+//        oneMoreItem.done = true
+//        saveItem()
+//        itemArray.append(oneMoreItem)
     }
     
     @IBAction func AddButtonPressed(_ sender: UIBarButtonItem) {
@@ -52,6 +62,8 @@ class GetToDoTableViewController: UITableViewController{
         present(alert, animated: true, completion: nil)
     }
     
+    // MARK: - Model Manupulation Methods
+    
     // Save the content in context to persisdentContainer.
     func saveItem() {
         do {
@@ -63,18 +75,19 @@ class GetToDoTableViewController: UITableViewController{
     }
     
     // Load content from persisdentContainer.
-    func loadItems() {
+    func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()) {
         // Create a fetch request of type ToDoItem.
-        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
         do {
             // Save the fetched data into itemArray.
             itemArray = try context.fetch(request)
         } catch {
             print("Error fetching data from context \(error)")
         }
+        tableView.reloadData()
     }
     
     // MARK: - TableView Datasource Methods
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
@@ -87,11 +100,60 @@ class GetToDoTableViewController: UITableViewController{
     }
     
     // MARK: - TableView Delegate Methods
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
+        
+//        // Remove if selected
+//        context.delete(itemArray[indexPath.row])
+//        itemArray.remove(at: indexPath.row)
+        
         saveItem()
     }
 
 }
 
+    // MARK: - SearchBar Delegate Methods
+extension GetToDoTableViewController: UISearchBarDelegate {
+    
+    // When the search button is clicked.
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+        
+        // Query if any title attribute contains searchBar.text, [cd] means disable case and diacritic sensitive.
+        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        
+        // Sort the data from the request.
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        loadItems(with: request)
+        
+        DispatchQueue.main.async {
+            searchBar.resignFirstResponder()
+        }
+    }
+    
+    // When the text in search bar changed, or press the x button in the search bar.
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            loadItems()
+            
+            // Dismiss the keyboard and stop editing the search bar.
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        } else { // Query with the current text in search bar.
+            let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
+            
+            // Query if any title attribute contains searchBar.text, [cd] means disable case and diacritic sensitive.
+            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            
+            // Sort the data from the request.
+            request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            loadItems(with: request)
+        }
+    }
+    
+}
