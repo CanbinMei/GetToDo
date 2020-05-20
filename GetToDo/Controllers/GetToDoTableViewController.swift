@@ -14,7 +14,15 @@ import CoreData
 
 class GetToDoTableViewController: UITableViewController {
     
+    @IBOutlet weak var navigationBar: UINavigationItem!
+    
     var itemArray = [ToDoItem]()
+    
+    var selectedCategory: ListCategory? {
+        didSet {
+            loadItems()
+        }
+    }
     
     // To get a reference of the "viewContext" of "persistentContainer".
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
@@ -24,8 +32,10 @@ class GetToDoTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+//        print(listName)
+//        navigationBar.title = listName
 //        print(dataFilePath)
-        loadItems()
+//        loadItems()
 
 //        // Code for understanding Core Data.
 //        let oneMoreItem = ToDoItem(context: context)
@@ -49,6 +59,7 @@ class GetToDoTableViewController: UITableViewController {
             let newItem = ToDoItem(context: self.context)
             newItem.title = textField.text!
             newItem.done = false
+            newItem.parentCategory = self.selectedCategory
             self.itemArray.append(newItem)
             self.saveItem()
         }
@@ -75,8 +86,16 @@ class GetToDoTableViewController: UITableViewController {
     }
     
     // Load content from persisdentContainer.
-    func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()) {
-        // Create a fetch request of type ToDoItem.
+    func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(), predicate: NSPredicate? = nil) {
+        
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
+        
+        if let additionalPredicate = predicate {
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
+        } else {
+            request.predicate = categoryPredicate
+        }
+
         do {
             // Save the fetched data into itemArray.
             itemArray = try context.fetch(request)
@@ -131,12 +150,12 @@ extension GetToDoTableViewController: UISearchBarDelegate {
         let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
         
         // Query if any title attribute contains searchBar.text, [cd] means disable case and diacritic sensitive.
-        request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+        let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
         
         // Sort the data from the request.
         request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
         
-        loadItems(with: request)
+        loadItems(with: request, predicate: predicate)
         
         DispatchQueue.main.async {
             searchBar.resignFirstResponder()
@@ -156,13 +175,14 @@ extension GetToDoTableViewController: UISearchBarDelegate {
             let request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest()
             
             // Query if any title attribute contains searchBar.text, [cd] means disable case and diacritic sensitive.
-            request.predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+            let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
             
             // Sort the data from the request.
             request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
             
-            loadItems(with: request)
+            loadItems(with: request, predicate: predicate)
         }
     }
+
     
 }
