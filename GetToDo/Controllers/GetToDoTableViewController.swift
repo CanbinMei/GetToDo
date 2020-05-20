@@ -17,10 +17,11 @@ class GetToDoTableViewController: UITableViewController {
     @IBOutlet weak var navigationBar: UINavigationItem!
     @IBOutlet weak var addButton: UIBarButtonItem!
     
+    // An array of ToDoItem objects.
     var itemArray = [ToDoItem]()
     
-    var selectedCategory: ListCategory? {
-        didSet {
+    var selectedCategory: ListCategory? { // selectedCategory is not initialized, it would be initialized in prepare() from root viewcontroller.
+        didSet { // didSet would be executed after selectedCategory is initialized.
             loadItems()
         }
     }
@@ -28,37 +29,32 @@ class GetToDoTableViewController: UITableViewController {
     // To get a reference of the "viewContext" of "persistentContainer".
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
-    // Place where the database live.
-//    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+    // Location of the database.
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
 
     override func viewDidLoad() {
         super.viewDidLoad()
-//        print(listName)
-//        navigationBar.title = listName
-//        print(dataFilePath)
-//        loadItems()
-
-//        // Code for understanding Core Data.
-//        let oneMoreItem = ToDoItem(context: context)
-//        oneMoreItem.title = "oneMoreItem"
-//        oneMoreItem.done = true
-//        saveItem()
-//        itemArray.append(oneMoreItem)
+//        print(dataFilePath) // Follow this path to find the database, instead of Documents folder, go to Library/Application Support.
     }
     
+    // MARK: - Add New To Do Item
+    
+    // When the "+" button in navigation bar is pressed.
     @IBAction func AddButtonPressed(_ sender: UIBarButtonItem) {
+        
+        // The textfield and message in the alert.
         var textField = UITextField()
         let alert = UIAlertController(title: "Add New Item", message: "", preferredStyle: .alert)
-        
         alert.addTextField { (alertTextField) in
             alertTextField.placeholder = "Create new item..."
             textField = alertTextField
         }
         
-        // Add new things
+        // The "Add" button in the alert.
         let add = UIAlertAction(title: "Add", style: .default) { (action) in
             if let name = textField.text {
                 if self.checkValidName(for: name) {
+                    // If the name is valid, save the text to database.
                     let newItem = ToDoItem(context: self.context)
                     newItem.title = textField.text!
                     newItem.done = false
@@ -66,7 +62,7 @@ class GetToDoTableViewController: UITableViewController {
                     self.itemArray.append(newItem)
                     self.saveItem()
                 } else {
-                    // If the name is not valid
+                    // If the name is not valid, present an alert, then ask user to type again.
                     let enterAgainAlert = UIAlertController(title: "Invalid Name", message: "Please enter a valid name.", preferredStyle: .alert)
                     let ok = UIAlertAction(title: "OK!", style: .default) { (action) in
                         self.AddButtonPressed(self.addButton)
@@ -76,19 +72,21 @@ class GetToDoTableViewController: UITableViewController {
                 }
             }
         }
-        alert.addAction(add)
+        alert.addAction(add) // Add the "add" action to the alert.
         
+        // The "Cancel" button in the alert.
         let cancel = UIAlertAction(title: "Cancel", style: .cancel) { (action) in
             print("Cancelled")
         }
-        alert.addAction(cancel)
+        alert.addAction(cancel) // Add the "cancel" action to the alert.
         
+        // Show the alert.
         present(alert, animated: true, completion: nil)
     }
     
     // MARK: - Model Manupulation Methods
     
-    // Save the content in context to persisdentContainer.
+    // Save everything in the context to database/persisdentContainer.
     func saveItem() {
         do {
             try context.save()
@@ -98,11 +96,13 @@ class GetToDoTableViewController: UITableViewController {
         self.tableView.reloadData()
     }
     
-    // Load content from persisdentContainer.
+    // Load content from persisdentContainer with 
     func loadItems(with request: NSFetchRequest<ToDoItem> = ToDoItem.fetchRequest(), predicate: NSPredicate? = nil) {
         
+        // Filter the data, get all the NSManagedOjbect with the "parentCategory.name" match "selectedCategory!.name!".
         let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@", selectedCategory!.name!)
         
+        // Add more filter, combine the categoryPredicate with predicate argument.
         if let additionalPredicate = predicate {
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate, additionalPredicate])
         } else {
@@ -110,18 +110,18 @@ class GetToDoTableViewController: UITableViewController {
         }
 
         do {
-            // Save the fetched data into itemArray.
-            itemArray = try context.fetch(request)
+            itemArray = try context.fetch(request) // Save the loaded data to "itemArray".
         } catch {
             print("Error fetching data from context \(error)")
         }
-        tableView.reloadData()
+        tableView.reloadData() // Reload the data to the tableview.
     }
     
+    // This function check if a string is only spaces.
     func checkValidName(for name: String) -> Bool {
         var valid = false
         let charArray = Array(name)
-        //        print(charArray)
+//        print(charArray)
         for char in charArray {
             if char != " " {
                 valid = true
@@ -132,10 +132,12 @@ class GetToDoTableViewController: UITableViewController {
     
     // MARK: - TableView Datasource Methods
     
+    // Return the number of cells in the tableview.
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itemArray.count
     }
     
+    // Set up what to display for each cell.
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ItemCell", for: indexPath)
         cell.textLabel?.text = itemArray[indexPath.row].title
@@ -145,18 +147,21 @@ class GetToDoTableViewController: UITableViewController {
     
     // MARK: - TableView Delegate Methods
     
+    // When a cell/row in the tableview is selected.
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
+        tableView.deselectRow(at: indexPath, animated: true) // Deselect the row immediately after the row is selected.
+        
+        // Change the checkmark, checkmark -> none, none -> checkmark.
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-//        // Remove if selected
+//        // Remove the data from database/persisdentContainer
 //        context.delete(itemArray[indexPath.row])
 //        itemArray.remove(at: indexPath.row)
         
         saveItem()
     }
     
-    // Swipe to delete.
+    // Swipe to delete functionality.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             context.delete(itemArray[indexPath.row])
@@ -164,7 +169,7 @@ class GetToDoTableViewController: UITableViewController {
             saveItem()
         }
     }
-
+    
 }
 
     // MARK: - SearchBar Delegate Methods
