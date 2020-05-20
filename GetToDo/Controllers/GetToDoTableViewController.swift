@@ -37,6 +37,7 @@ class GetToDoTableViewController: UITableViewController {
 //        print(dataFilePath) // Follow this path to find the database, instead of Documents folder, go to Library/Application Support.
     }
     
+    
     // MARK: - Add New To Do Item
     
     // When the "+" button in navigation bar is pressed.
@@ -84,6 +85,7 @@ class GetToDoTableViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    
     // MARK: - Model Manupulation Methods
     
     // Save everything in the context to database/persisdentContainer.
@@ -108,6 +110,9 @@ class GetToDoTableViewController: UITableViewController {
         } else {
             request.predicate = categoryPredicate
         }
+        
+        // Show the checked items on top of other items, sort them by "done" attribute.
+        request.sortDescriptors = [NSSortDescriptor(key: "done", ascending: true)]
 
         do {
             itemArray = try context.fetch(request) // Save the loaded data to "itemArray".
@@ -130,6 +135,7 @@ class GetToDoTableViewController: UITableViewController {
         return valid
     }
     
+    
     // MARK: - TableView Datasource Methods
     
     // Return the number of cells in the tableview.
@@ -145,6 +151,7 @@ class GetToDoTableViewController: UITableViewController {
         return cell
     }
     
+    
     // MARK: - TableView Delegate Methods
     
     // When a cell/row in the tableview is selected.
@@ -159,6 +166,7 @@ class GetToDoTableViewController: UITableViewController {
 //        itemArray.remove(at: indexPath.row)
         
         saveItem()
+        loadItems()
     }
     
     // Swipe to delete.
@@ -172,7 +180,9 @@ class GetToDoTableViewController: UITableViewController {
 
 }
 
+
     // MARK: - SearchBar Delegate Methods
+
 extension GetToDoTableViewController: UISearchBarDelegate {
     
     // When the search button is clicked.
@@ -213,6 +223,5 @@ extension GetToDoTableViewController: UISearchBarDelegate {
             loadItems(with: request, predicate: predicate)
         }
     }
-
     
 }
