@@ -128,6 +128,17 @@ class CategoryViewController: UITableViewController {
     
     // MARK: - TableView Delegate Methods
     
+    // Swipe to delete functionality.
+    // Set Delete rule = Cascade
+    // Delete a catetory/list means delete all the items inside the list.
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            context.delete(categoryArray[indexPath.row])
+            categoryArray.remove(at: indexPath.row)
+            saveCategory()
+        }
+    }
+    
     // When a cell/row in the tableview is selected.
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier: "goToItems", sender: self) // Go to next view controller where "goToITem" segue is pointing to.

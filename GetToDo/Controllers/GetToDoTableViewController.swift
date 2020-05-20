@@ -161,7 +161,7 @@ class GetToDoTableViewController: UITableViewController {
         saveItem()
     }
     
-    // Swipe to delete functionality.
+    // Swipe to delete.
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             context.delete(itemArray[indexPath.row])
@@ -169,7 +169,7 @@ class GetToDoTableViewController: UITableViewController {
             saveItem()
         }
     }
-    
+
 }
 
     // MARK: - SearchBar Delegate Methods
