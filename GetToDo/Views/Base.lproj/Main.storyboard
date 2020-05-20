@@ -39,13 +39,14 @@
                     </tableView>
                     <navigationItem key="navigationItem" title="To Do Items" id="Olv-Jn-Guv">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="3Gp-Vi-EIV">
-                            <color key="tintColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <color key="tintColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <connections>
                                 <action selector="AddButtonPressed:" destination="Ycr-Zq-Hus" id="wsB-Ox-GqE"/>
                             </connections>
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="addButton" destination="3Gp-Vi-EIV" id="vgz-DL-JZW"/>
                         <outlet property="navigationBar" destination="Olv-Jn-Guv" id="fZG-5q-B7h"/>
                     </connections>
                 </tableViewController>
@@ -63,7 +64,8 @@
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="barTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <textAttributes key="titleTextAttributes">
-                            <color key="textColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            <fontDescription key="fontDescription" style="UICTFontTextStyleTitle2"/>
+                            <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         </textAttributes>
                     </navigationBar>
                     <nil name="viewControllers"/>
@@ -75,7 +77,7 @@
             </objects>
             <point key="canvasLocation" x="856.52173913043487" y="95.758928571428569"/>
         </scene>
-        <!--😍 Lists 😉-->
+        <!--Lists-->
         <scene sceneID="Lwj-Pz-XeB">
             <objects>
                 <tableViewController id="sLo-4a-8hg" customClass="CategoryViewController" customModule="GetToDo" customModuleProvider="target" sceneMemberID="viewController">
@@ -98,7 +100,7 @@
                             <outlet property="delegate" destination="sLo-4a-8hg" id="Mdb-PY-1jg"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="😍 Lists 😉" id="cN8-uQ-dIa">
+                    <navigationItem key="navigationItem" title="Lists" id="cN8-uQ-dIa">
                         <barButtonItem key="rightBarButtonItem" systemItem="add" id="tHp-2x-Rbw">
                             <connections>
                                 <action selector="addButtonPressed:" destination="sLo-4a-8hg" id="Wfa-wo-Xcc"/>

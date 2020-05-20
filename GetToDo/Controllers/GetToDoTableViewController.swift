@@ -15,6 +15,7 @@ import CoreData
 class GetToDoTableViewController: UITableViewController {
     
     @IBOutlet weak var navigationBar: UINavigationItem!
+    @IBOutlet weak var addButton: UIBarButtonItem!
     
     var itemArray = [ToDoItem]()
     
@@ -56,12 +57,24 @@ class GetToDoTableViewController: UITableViewController {
         
         // Add new things
         let add = UIAlertAction(title: "Add", style: .default) { (action) in
-            let newItem = ToDoItem(context: self.context)
-            newItem.title = textField.text!
-            newItem.done = false
-            newItem.parentCategory = self.selectedCategory
-            self.itemArray.append(newItem)
-            self.saveItem()
+            if let name = textField.text {
+                if self.checkValidName(for: name) {
+                    let newItem = ToDoItem(context: self.context)
+                    newItem.title = textField.text!
+                    newItem.done = false
+                    newItem.parentCategory = self.selectedCategory
+                    self.itemArray.append(newItem)
+                    self.saveItem()
+                } else {
+                    // If the name is not valid
+                    let enterAgainAlert = UIAlertController(title: "Invalid Name", message: "Please enter a valid name.", preferredStyle: .alert)
+                    let ok = UIAlertAction(title: "OK!", style: .default) { (action) in
+                        self.AddButtonPressed(self.addButton)
+                    }
+                    enterAgainAlert.addAction(ok)
+                    self.present(enterAgainAlert, animated: true, completion: nil)
+                }
+            }
         }
         alert.addAction(add)
         
@@ -103,6 +116,18 @@ class GetToDoTableViewController: UITableViewController {
             print("Error fetching data from context \(error)")
         }
         tableView.reloadData()
+    }
+    
+    func checkValidName(for name: String) -> Bool {
+        var valid = false
+        let charArray = Array(name)
+        //        print(charArray)
+        for char in charArray {
+            if char != " " {
+                valid = true
+            }
+        }
+        return valid
     }
     
     // MARK: - TableView Datasource Methods
